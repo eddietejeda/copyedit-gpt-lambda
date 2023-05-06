@@ -16,7 +16,7 @@ def copyedit():
 
     After you print the output text, add a line break, and then print a bulleted list of what you changed.
     """
-    user_input = input("Enter your text: \n")
+    user_input = input("Enter your text: \n\n")
 
 
     prompt = PromptTemplate(
@@ -25,10 +25,9 @@ def copyedit():
     )
     final_prompt = prompt.format(user_input=user_input)
 
-    return (f"Output text:\n {llm(final_prompt)}")
+    return (llm(final_prompt))
 
-def lambda_handler():
-    
+def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'body': json.dumps( copyedit() )
@@ -36,4 +35,4 @@ def lambda_handler():
 
 
 if os.environ.get("ENV") == "development":
-    print( lambda_handler() )
+    print(f"\n\nOutput text:\n {copyedit()}")
