@@ -3,10 +3,12 @@ import json
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+if os.environ.get("ENV") == "development":
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
-def main():
+
+def copyedit():
     llm = OpenAI(model_name="text-davinci-003")
 
     template = """
@@ -23,10 +25,15 @@ def main():
     )
     final_prompt = prompt.format(user_input=user_input)
 
-    print (f"\nOutput text:\n {llm(final_prompt)}")
+    return (f"Output text:\n {llm(final_prompt)}")
 
-def lambda_handler(event, context):
+def lambda_handler():
+    
     return {
         'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
+        'body': json.dumps( copyedit() )
     }
+
+
+if os.environ.get("ENV") == "development":
+    print( lambda_handler() )
