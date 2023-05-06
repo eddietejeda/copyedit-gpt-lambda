@@ -8,7 +8,7 @@ jobs:
 
   deploy_source:
     name: deploy lambda from source
-    runs-on: amazonlinux:2023
+    runs-on: ubuntu-latest
     steps:
       - name: checkout source code
         uses: actions/checkout@v1
