@@ -34,8 +34,8 @@ def lambda_handler(event, context):
             'Content-Type': 'application/json'
         },
         'body': {
-            'revision': content['revision'],
-            'changes': content['changes']
+            'changes': content['changes'],
+            'revision': content['revision']
         }
     }
 
