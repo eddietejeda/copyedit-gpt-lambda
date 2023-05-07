@@ -4,11 +4,9 @@ from langchain.llms import OpenAI
 from langchain import PromptTemplate
 
 
-def copyedit(event):
+def copyedit(user_input):
 
     llm = OpenAI(model_name="text-davinci-003")
-
-    user_input = event["user_input"]
 
     template = """
     Lightly copy edit the following text: {user_input}
@@ -23,13 +21,22 @@ def copyedit(event):
 
     final_prompt = prompt.format(user_input=user_input)
 
-    return (llm(final_prompt))
-
-def lambda_handler(event):
+    return json.loads(llm(final_prompt))
     
+
+def lambda_handler(event, context):
+    body = json.loads(event.get('body'))
+    content = copyedit(body['user_input'])
+
     return {
         'statusCode': 200,
-        'body': json.loads(copyedit(event))
+        'headers' : {
+            'Content-Type': 'application/json'
+        },
+        'body': {
+            'revision': content['revision'],
+            'changes': content['changes']
+        }
     }
 
 
