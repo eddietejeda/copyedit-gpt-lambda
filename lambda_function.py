@@ -9,7 +9,7 @@ def copyedit(user_input):
     llm = OpenAI(model_name="text-davinci-003")
 
     template = """
-    Lightly copy edit the following text: {user_input}
+    Lightly copy edit the following text but do not change the substance of the content: {user_input}
 
     The output will be in a JSON string format, where the revised text will go in a 'revision' field, and the list of changes will go in the 'changes' field using markdown bullets syntax.
     """
