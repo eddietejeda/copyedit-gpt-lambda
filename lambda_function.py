@@ -1,17 +1,50 @@
 import os
 import json
+import base64
+# from html_sanitizer import Sanitizer
+
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
 
 
-def copyedit(user_input):
+def lambda_handler(event, context):
+
+    if event['path'] == '/healthcheck':
+        response = get_healthcheck(event['body'])
+    elif event['path'] == '/copyedit':
+        response = post_copyedit(event['body'])
+    else:
+        response = "No method defined"
+
+    return {
+        'statusCode': 200,
+        'isBase64Encoded': True,
+        'body': base64.b64encode(response) 
+    }
+    
+
+def get_healthcheck(body):
+    return bytes('success {}!'.format(body), "utf-8")
+    
+
+def post_copyedit(body):
+
+    jsonString = base64.b64decode(body)
+    jsonObj = json.loads(jsonString)
+    
+    return prompt(jsonObj['user_input'])
+    
+
+
+def prompt(user_input):
 
     llm = OpenAI(model_name="text-davinci-003")
 
     template = """
-    Lightly copy edit the following text but do not change the substance of the content: {user_input}
-
-    The output will be in a JSON string format, where the revised text will go in a 'revision' field, and the list of changes will go in the 'changes' field using markdown bullets syntax.
+Lightly copy edit the section below, but do not change the substance of the content. Keep track of the changes you made. The output will be in a JSON string format.The JSON will include the revised text in the "revision" field and the changes you made will be the "changes" field using markdown bullet lists. Do not print any other text below or after the JSON string.
+    
+Here is the text:
+{user_input}  
     """
 
     prompt = PromptTemplate(
@@ -21,24 +54,8 @@ def copyedit(user_input):
 
     final_prompt = prompt.format(user_input=user_input)
 
-    return json.loads(llm(final_prompt))
+    return bytes(llm(final_prompt), "utf-8")
     
-
-def lambda_handler(event, context):
-    body = json.loads(event.get('body'))
-    content = copyedit(body['user_input'])
-
-    return {
-        'statusCode': 200,
-        'headers' : {
-            'Content-Type': 'application/json'
-        },
-        'body': {
-            'changes': content['changes'],
-            'revision': content['revision']
-        }
-    }
-
 
 
 if os.environ.get("ENV") == "development":
@@ -46,10 +63,14 @@ if os.environ.get("ENV") == "development":
     os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
     user_input = input("Enter your text: \n\n")
-    event = {
-        "user_input": user_input
-    }
+    response = json.loads(prompt(user_input))
+    
+    print(f"\n\nRevised text:\n\n{response['revision']}\n\nChanges:\n\n{response['changes']}")
 
-    response = lambda_handler(event)
 
-    print(f"\n\nRevised text:\n\n{response['body']['revision']}\n\nChanges:\n{response['body']['changes']}")
+    # sanitizer = Sanitizer({
+    #     'tags': ('h1', 'h2', 'p'),
+    #     'attributes': {},
+    #     'empty': set(),
+    #     'separate': set(),
+    # })
