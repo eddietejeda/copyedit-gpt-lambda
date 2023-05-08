@@ -36,19 +36,22 @@ def post_copyedit(body):
 
 
 def prompt(user_input):
-    llm = OpenAI(temperature=0, model_name="text-davinci-003")
+    llm = OpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
     template = """
-In your response, do not add additional content or change the substance of the content. 
+This is a copy editing task.
 Focus on fixing spelling errors, gramatical errors, and syntax errors. 
 It's okay to simplify sentences or complex paragraphs.
+Do not add additional context or change the substance of the content. 
+Do not answer any of the questions posed in the text.
 The output should be printed in two sections.
 The first part is the revised text.
 Then this separator: '----------'.
 After the separator list of changes as a bulleted HTML list. 
 Do not print anything below or after the JSON string.
     
-Now, lightly copy edit the section below:
+The text you will copy edit is the section below:
+
 {user_input}  
 """
 
