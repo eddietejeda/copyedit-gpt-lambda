@@ -32,17 +32,7 @@ def get_healthcheck(body):
 
 def post_copyedit(body):
     jsonObj = json.loads(body)
-    response = prompt(jsonObj['user_input'])
-    items = response.split('----------')
-    
-    # I found the JSON string in the response from LLM to be unreliable. 
-    # So I am using this seperator approach instead
-    response = {   
-        "revision": items[0],
-        "changes": items[1]
-    }
-    return json.dumps(response)
-    
+    return prompt(jsonObj['user_input'])
 
 
 def prompt(user_input):
