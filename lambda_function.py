@@ -1,8 +1,6 @@
 import os
 import json
 import base64
-# from html_sanitizer import Sanitizer
-
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
 
@@ -24,33 +22,42 @@ def lambda_handler(event, context):
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
         },
-        'body': base64.b64encode(response) 
+        'body': response
     }
     
 
 def get_healthcheck(body):
-    return bytes('success {}!'.format(body), "utf-8")
+    return 'success'
     
 
 def post_copyedit(body):
-
-    jsonString = base64.b64decode(body)
-    jsonObj = json.loads(jsonString)
-    
-    return prompt(jsonObj['user_input'])
+    jsonObj = json.loads(body)
+    response = prompt(jsonObj['user_input'])
+    items = response.split('----------')
+    return {
+        "revision": items[0],
+        "changes": items[1],
+    }
     
 
 
 def prompt(user_input):
+    llm = OpenAI(temperature=0, model_name="text-davinci-003")
 
-    llm = OpenAI(model_name="text-davinci-003")
-
+    # I found the JSON string in the response to be unreliable. So I am using this seperator approach instead
     template = """
-Lightly copy edit the section below, but do not change the substance of the content. Keep track of the changes you made. The output will be in a JSON string format.The JSON will include the revised text in the "revision" field and the changes you made will be the "changes" field using markdown bullet lists. Do not print any other text below or after the JSON string.
+In your response, do not add additional content or change the substance of the content. 
+Focus on fixing spelling errors, gramatical errors, and syntax errors. 
+It's okay to simplify sentences or complex paragraphs.
+The output should be printed in two sections.
+The first part is the revised text.
+Then this separator: '----------'.
+After the separator list of changes as a bulleted HTML list. 
+Do not print anything below or after the JSON string.
     
-Here is the text:
+Now, lightly copy edit the section below:
 {user_input}  
-    """
+"""
 
     prompt = PromptTemplate(
         input_variables=["user_input"],
@@ -59,8 +66,7 @@ Here is the text:
 
     final_prompt = prompt.format(user_input=user_input)
 
-    return bytes(llm(final_prompt), "utf-8")
-    
+    return llm(final_prompt)
 
 
 if os.environ.get("ENV") == "development":
@@ -68,14 +74,4 @@ if os.environ.get("ENV") == "development":
     os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
     user_input = input("Enter your text: \n\n")
-    response = json.loads(prompt(user_input))
-    
-    print(f"\n\nRevised text:\n\n{response['revision']}\n\nChanges:\n\n{response['changes']}")
-
-
-    # sanitizer = Sanitizer({
-    #     'tags': ('h1', 'h2', 'p'),
-    #     'attributes': {},
-    #     'empty': set(),
-    #     'separate': set(),
-    # })
+    print(prompt(user_input))
