@@ -47,7 +47,7 @@ Do not answer any of the questions posed in the text.
 The output should be printed in two sections.
 The first part is the revised text.
 Then this separator: '----------'.
-After the separator list of changes as a bulleted HTML list. 
+After the separator, list the changes you made markdown bullet list.
 Do not print anything below or after the JSON string.
     
 The text you will copy edit is the section below:
