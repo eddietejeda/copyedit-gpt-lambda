@@ -34,17 +34,20 @@ def post_copyedit(body):
     jsonObj = json.loads(body)
     response = prompt(jsonObj['user_input'])
     items = response.split('----------')
-    return {
+    
+    # I found the JSON string in the response from LLM to be unreliable. 
+    # So I am using this seperator approach instead
+    response = {   
         "revision": items[0],
-        "changes": items[1],
+        "changes": items[1]
     }
+    return json.dumps(response)
     
 
 
 def prompt(user_input):
     llm = OpenAI(temperature=0, model_name="text-davinci-003")
 
-    # I found the JSON string in the response to be unreliable. So I am using this seperator approach instead
     template = """
 In your response, do not add additional content or change the substance of the content. 
 Focus on fixing spelling errors, gramatical errors, and syntax errors. 
