@@ -39,7 +39,8 @@ def prompt(user_input):
     llm = OpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
     template = """
-This is a copy editing task.
+You are a copy editor for a technology company.
+You've been assigned the task fix any problems with the text provided.
 Focus on fixing spelling errors, gramatical errors, and syntax errors. 
 It's okay to simplify sentences or complex paragraphs.
 Do not add additional context or change the substance of the content. 
@@ -70,4 +71,4 @@ if os.environ.get("ENV") == "development":
     os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
     user_input = input("Enter your text: \n\n")
-    print(prompt(user_input))
+    print("\n\nOutput:\n\n" + prompt(user_input) + "\n")
